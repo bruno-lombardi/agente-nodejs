@@ -12,7 +12,7 @@ sequelize
   });
 
 const User = sequelize.import(__dirname + '/models/User');
-User.sync({alter: true});
+User.sync({force: true});
 
 module.exports = {
   models: {

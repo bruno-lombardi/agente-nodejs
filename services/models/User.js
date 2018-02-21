@@ -1,11 +1,13 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
+const debug = require("debug")("agente-esp:user-model");
 
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('user', {
+  const User = sequelize.define("user", {
     socialID: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: null 
+      defaultValue: null,
+      unique: true
     },
     socialIDProvider: {
       type: DataTypes.STRING,
@@ -31,6 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     email: {
       type: DataTypes.STRING,
       allowNull: true,
+      unique: true,
       validate: {
         isEmail: true,
         notEmpty: true
@@ -39,19 +42,44 @@ module.exports = (sequelize, DataTypes) => {
     password: {
       type: DataTypes.STRING,
       allowNull: true,
+      // set(val) {
+      //   debug("Set password called");
+      //   bcrypt.genSalt(10, (err, salt) => {
+      //     bcrypt.hash(val, salt, (err, hash) => {
+      //       this.setDataValue("password", hash);
+      //       debug("Password after hash: ", this.getDataValue("password"));
+      //     });
+      //   });
+      // },
       validate: {
         notEmpty: true,
         min: 6
-      },
-      set(val) {
-        this.setDataValue('password', bcrypt.hashSync(val, bcrypt.genSaltSync(8), null))
       }
     }
-  }, {
-    instanceMethods: {
-      validPassword: (password) => {
-        return bcrypt.compareSync(password, this.password);
-      }
-    }
-  })
-}
+  });
+
+  User.hook("beforeCreate", (user, options) => {
+    debug("beforeCreate called");
+    if (!user.changed("password")) return new Promise.reject("Not modified");
+    return bcrypt
+      .hash(user.password, 10)
+      .then(hash => (user.password = hash))
+      .catch(err => new Promise.reject(err));
+
+    // bcrypt.genSalt(8, (err, salt) => {
+    //   bcrypt.hash(user.get("password"), salt, (err, hash) => {
+    //     if (!err) {
+    //       debug("Current user password: ", user.get("password"));
+    //       user.set("password", hash);
+    //       debug("Final hashed password: ", user.get("password"));
+    //     }
+    //   });
+    // });
+  });
+
+  User.prototype.validPassword = function(password) {
+    return bcrypt.compare(password, this.password);
+  };
+
+  return User;
+};

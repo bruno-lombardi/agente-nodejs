@@ -4,6 +4,7 @@ const passport = require("passport");
 router.post("/local", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
+      res.status(500).json({err});
       return next(err);
     }
     if (!user) {

@@ -57,20 +57,28 @@ passport.use(
   new LocalStrategy(
     {
       usernameField: "email",
-      passwordField: "password",
+      passwordField: "password"
     },
     async (email, password, done) => {
       try {
-        const user = await User.findOne({ email });
 
-        if (!user || !user.validPassword(password)) {
-          debug("Incorrect email or password.");
-          return done(null, false, {message: "Incorrect email or password"});
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+          debug("Incorrect email");
+          return done(null, false, { message: "Incorrect email or password" });
         }
+
+        const isValidPassword = await user.validPassword(password);
+        debug('isValidPassword: ', isValidPassword);
         
+        if(!isValidPassword) {
+          debug("Incorrect password.");
+          return done(null, false, { message: "Incorrect email or password" });
+        }
+
         done(null, user);
       } catch (err) {
-        debug('err catch', err);
+        debug("err catch", err);
         return done(err);
       }
     }

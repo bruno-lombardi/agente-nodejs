@@ -3,6 +3,7 @@ const request = require("supertest");
 
 const app = require("../app");
 
+//TODO: adicionar seeds configurar db para testes
 const user1 = {
   email = "myawesomeemail@email.com",
   password = "somerandompassword",
@@ -38,7 +39,12 @@ describe("Users CRUD", () => {
         
       });
   });
-  it('/users/create should return 404 if no data is sent or is invalid', done => {
+
+  it('/users/create should return 412 if user with passed data already exists', done => {
+    //TODO: terminar testcase
+  });
+
+  it('/users/create should return 400 if no data is sent or is invalid', done => {
     //TODO: finalizar test case
   });
 });
