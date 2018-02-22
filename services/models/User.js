@@ -65,16 +65,6 @@ module.exports = (sequelize, DataTypes) => {
       .hash(user.password, 10)
       .then(hash => (user.password = hash))
       .catch(err => new Promise.reject(err));
-
-    // bcrypt.genSalt(8, (err, salt) => {
-    //   bcrypt.hash(user.get("password"), salt, (err, hash) => {
-    //     if (!err) {
-    //       debug("Current user password: ", user.get("password"));
-    //       user.set("password", hash);
-    //       debug("Final hashed password: ", user.get("password"));
-    //     }
-    //   });
-    // });
   });
 
   User.prototype.validPassword = function(password) {

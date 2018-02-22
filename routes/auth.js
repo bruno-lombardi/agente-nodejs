@@ -10,7 +10,7 @@ router.post("/local", (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: info.message });
     }
-    res.json(user);
+    res.status(200).json(user);
   })(req, res, next);
 });
 

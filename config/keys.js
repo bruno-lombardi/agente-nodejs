@@ -1,6 +1,7 @@
 if (process.env.NODE_ENV === "production") {
   module.exports = require("./prod");
 } else if (process.env.NODE_ENV === "test") {
+  console.log('test env');
   if (validKeysFile("./test")) {
     module.exports = require("./test");
   }
