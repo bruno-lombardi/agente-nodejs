@@ -1,14 +1,11 @@
 const router = require("express").Router();
 const passport = require("passport");
+const debug = require("debug")("agente-esp:routes.auth");
 /* GET users listing. */
 router.post("/local", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
-      res.status(500).json({err});
-      return next(err);
-    }
-    if (!user) {
-      return res.status(401).json({ message: info.message });
+      return res.status(err.status).json({err});
     }
     res.status(200).json(user);
   })(req, res, next);
@@ -27,6 +24,7 @@ router.get(
 );
 
 router.get("/google/callback", passport.authenticate("google"), (req, res) => {
+  debug(req.user);
   res.json(req.user);
 });
 

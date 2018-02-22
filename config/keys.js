@@ -19,7 +19,7 @@ function validKeysFile(path) {
       module.googleClientID &&
       module.googleClientSecret &&
       module.cookieKey &&
-      module.mysqlURI
+      module.mongoURI
     );
   } catch (err) {
     console.error(err);

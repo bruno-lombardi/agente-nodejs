@@ -1,20 +1,18 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const sequelize = require("sequelize");
 const debug = require("debug")("agente-esp:passport");
 
 const keys = require("../config/keys");
-const User = require("./db").models.User;
+
+const { User } = require("../models/user");
 
 passport.serializeUser((user, done) => {
-  debug("Serializing user ", user);
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser((user, done) => {
-  User.findById(user.id).then(user => {
-    debug("Deserializing user ", user);
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => {
     done(null, user);
   });
 });
@@ -26,29 +24,20 @@ passport.use(
       clientSecret: keys.googleClientSecret,
       callbackURL: "/auth/google/callback",
       proxy: true
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        const existingUser = await User.findOne({
-          socialID: profile.id,
-          socialIDProvider: profile.provider
-        });
-        if (existingUser) {
-          debug("User already exists in database", existingUser);
-          return done(null, existingUser);
-        }
-        const user = await User.create({
-          socialID: profile.id,
-          socialIDProvider: profile.provider,
-          name: profile.name.givenName,
-          lastName: profile.name.familyName
-        });
-        debug("Created a new user in database", user);
-
-        return done(null, user);
-      } catch (err) {
-        return done(err);
+    }, async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ 'google.id': profile.id });
+      if (existingUser) {
+        return done(null, existingUser);
       }
+      const user = await new User({
+        google: {
+          id: profile.id,
+          email: profile.emails[0].value,
+          token: accessToken,
+          name: profile.givenName + ' ' + profile.familyName
+        }
+       }).save();
+      done(null, user);
     }
   )
 );
@@ -60,26 +49,17 @@ passport.use(
       passwordField: "password"
     },
     async (email, password, done) => {
+      debug("Starting local strategy");
       try {
-
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-          debug("Incorrect email");
-          return done(null, false, { message: "Incorrect email or password" });
+        const user = await User.findByCredentials(email, password);
+        debug(user);
+        if(user) {
+          return done(null, user);
         }
-
-        const isValidPassword = await user.validPassword(password);
-        debug('isValidPassword: ', isValidPassword);
-        
-        if(!isValidPassword) {
-          debug("Incorrect password.");
-          return done(null, false, { message: "Incorrect email or password" });
-        }
-
-        done(null, user);
+        done(null, false);
       } catch (err) {
-        debug("err catch", err);
-        return done(err);
+        debug("Err catch", err);
+        done(err, false);
       }
     }
   )
