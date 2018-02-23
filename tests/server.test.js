@@ -3,11 +3,11 @@ const request = require("supertest");
 const debug = require("debug")("agente-esp:server-test");
 
 const app = require("../app");
-const User = require("../services/db").models.User;
+const User = require("../models/user");
 
-const { user1, user2, populateUsers } = require("./seed/users");
+const { seedUsers, users } = require("../seeders/users");
 
-beforeEach(populateUsers);
+beforeEach(seedUsers);
 
 describe("Authentication", () => {
   describe("Local", () => {
@@ -19,7 +19,8 @@ describe("Authentication", () => {
         .send({ email, password })
         .expect(401)
         .expect(res => {
-          expect(res.body.message).toBeTruthy();
+          expect(res.body.err).toBeTruthy();
+          expect(res.body.err.status).toBe(401);
         })
         .end(done);
     });
@@ -27,10 +28,10 @@ describe("Authentication", () => {
     it("/auth/local should return 200 with user data if valid credentials", done => {
       request(app)
         .post("/auth/local")
-        .send({email: user1.email, password: user1.password})
+        .send({ email: users[0].local.email, password: users[0].local.password })
         .expect(200)
         .expect(res => {
-          expect(res.body).toBeTruthy();
+          expect(res.body._id).toBeTruthy();
         })
         .end(done);
     });
@@ -39,37 +40,57 @@ describe("Authentication", () => {
 
 describe("Users Routes", () => {
   it("/users/create should return 201 and create a new user if email is not used by anyone", done => {
+    const email = "gamingalternative@lol.com";
     request(app)
       .post("/users/create")
       .send({
-        email: user2.email,
-        password: user2.password,
-        firstName: user2.firstName,
-        lastName: user2.lastName
+        email,
+        password: "toosimplepasswordForMe",
+        firstName: "Gamer",
+        lastName: "Devoe"
       })
       .expect(201)
       .expect(res => {
-        expect(res.body.user).toBeTruthy();
-        expect(res.body.user.email).toBe(user2.email);
+        expect(res.body._id).toBeTruthy();
+        expect(res.body.local.email).toBe(email);
       })
       .end((err, res) => {
         if (err) {
           done(err);
         }
-        User.findOne({ where: { email: res.body.user.email } }).then(result => {
-          expect(result.firstName).toBe(user2.firstName);
+        User.findOne({'local.email': email}).then(result => {
+          expect(result.id).toBe(res.body._id);
           done();
         });
       });
   });
 
-  // it("/users/create should return 412 if user with passed data already exists", done => {
-  //   //TODO: terminar testcase
-  //   done();
-  // });
+  it("/users/create should return 409 if user with that email already exists", done => {
+    request(app)
+    .post('/users/create')
+    .send({
+      email: users[0].local.email,
+      password: "somerandompassword",
+      firstName: users[0].firstName,
+      lastName: users[0].lastName
+    })
+    .expect(409)
+    .expect(res => {
+      expect(res.body.err).toBeTruthy();
+      expect(res.body.err.status).toBe(409);
+    })
+    .end(done);
+  });
 
-  // it("/users/create should return 400 if no data is sent or is invalid", done => {
-  //   //TODO: finalizar test case
-  //   done();
-  // });
+  it("/users/create should return 400 if no data is sent or is invalid", done => {
+    request(app)
+    .post('/users/create')
+    .send({})
+    .expect(400)
+    .expect(res => {
+      expect(res.body.err).toBeTruthy();
+      expect(res.body.err.status).toBe(400);
+    })
+    .end(done);
+  });
 });

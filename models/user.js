@@ -5,13 +5,8 @@ const _ = require("lodash");
 const debug = require("debug")("agente-esp:user-model");
 
 /**
- * Mongoose Schema for users
- *  - email -> unique validated email
- *  - password -> encoded password
- *  - tokens -> array with token properties
- *    - access -> access type of the token
- *    - token -> hashed token of user based on his _id and access
- * @type {mongoose}
+ *
+ * @type {Schema}
  */
 var UserSchema = new mongoose.Schema({
   firstName: {
@@ -48,7 +43,9 @@ var UserSchema = new mongoose.Schema({
     token: String,
     email: String,
     name: String
-  }
+  },
+}, {
+  timestamps: true
 });
 
 /**
@@ -61,7 +58,7 @@ UserSchema.methods.toJSON = function() {
   var user = this;
   var userObject = user.toObject();
 
-  return _.pick(userObject, ["_id", "local", "google", "facebook"]);
+  return _.pick(userObject, ["_id", "local.email", "google", "facebook"]);
 };
 
 /**
@@ -76,12 +73,12 @@ UserSchema.methods.toJSON = function() {
 UserSchema.statics.findByCredentials = function(email, password) {
   var User = this;
 
-  return User.findOne({ 'local.email': email }).then(user => {
+  return User.findOne({ "local.email": email }).then(user => {
     debug("Entered findOne");
     debug("User found:", user);
 
     if (!user) {
-      return Promise.reject({status: 401, message: "Unable to find user"});
+      return Promise.reject({ status: 401, message: "Unable to find user" });
     }
 
     return new Promise((resolve, reject) => {
@@ -89,7 +86,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
         if (res) {
           resolve(user);
         } else {
-          reject({status: 401, message: "Incorrect email or password"});
+          reject({ status: 401, message: "Incorrect email or password" });
         }
       });
     });
@@ -107,7 +104,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
 UserSchema.pre("save", function(next) {
   var user = this;
 
-  if (user.isModified("password")) {
+  if (user.isModified("local.password")) {
     var passToHash = user.local.password;
 
     bcrypt.genSalt(10, (err, salt) => {
@@ -127,4 +124,4 @@ UserSchema.pre("save", function(next) {
 
 const User = mongoose.model("User", UserSchema);
 
-module.exports = { User };
+module.exports = User;

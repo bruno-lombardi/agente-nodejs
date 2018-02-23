@@ -3,3 +3,4 @@ node_modules
 dev.js
 .vscode
 config/test.js
+data/

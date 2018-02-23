@@ -6,11 +6,25 @@ mongoose.Promise = global.Promise; // set mongoose to use js built in promises
 
 const mongoUri = keys.mongoURI;
 
-mongoose
-  .connect(mongoUri)
-  .then(() => {
-    debug("Connected to database: ", mongoUri);
-  })
-  .catch(err => {});
+const connect = () => {
+  return mongoose
+    .connect(mongoUri)
+    .then(() => {
+      debug("Connected to database: ", mongoUri);
+    })
+    .catch(err => {});
+};
 
-module.exports.mongoose = mongoose;
+const connectDone = done => {
+  mongoose
+    .connect(mongoUri)
+    .then(() => {
+      done();
+    })
+    .catch(err => {});
+};
+
+module.exports = {
+  connect,
+  connectDone
+};

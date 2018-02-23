@@ -5,7 +5,7 @@ const debug = require("debug")("agente-esp:passport");
 
 const keys = require("../config/keys");
 
-const { User } = require("../models/user");
+const User = require("../models/user");
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
