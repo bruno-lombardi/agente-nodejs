@@ -37,6 +37,16 @@ app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
+if (process.env.NODE_ENV === "production") {
+  // serve production assets
+  app.use(express.static("client/build"));
+  // serve index.html if route is not recognized
+  const path = require("path");
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
+}
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

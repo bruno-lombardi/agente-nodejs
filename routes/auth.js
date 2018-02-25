@@ -25,6 +25,10 @@ router.get(
 
 router.get("/google/callback", passport.authenticate("google"), (req, res) => {
   debug(req.user);
+  res.redirect("/perfil");
+});
+
+router.get("/current", (req, res) => {
   res.json(req.user);
 });
 

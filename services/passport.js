@@ -2,6 +2,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const debug = require("debug")("agente-esp:passport");
+const lodash = require("lodash");
 
 const keys = require("../config/keys");
 
@@ -30,11 +31,12 @@ passport.use(
         return done(null, existingUser);
       }
       const user = await new User({
+        picture: profile.photos ? normalizeProfileImage(profile.photos[0].value) : "/assets/img/unknown_user.png",
         google: {
           id: profile.id,
           email: profile.emails[0].value,
           token: accessToken,
-          name: profile.givenName + ' ' + profile.familyName
+          name: profile.name.givenName + ' ' + profile.name.familyName
         }
        }).save();
       done(null, user);
@@ -64,3 +66,7 @@ passport.use(
     }
   )
 );
+
+function normalizeProfileImage(uri) {
+  return uri.replace(/\?.*$/, "");
+}

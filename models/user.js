@@ -17,6 +17,9 @@ var UserSchema = new mongoose.Schema({
     type: String,
     minlength: 2
   },
+  picture: {
+    type: "String"
+  },
   local: {
     email: {
       type: String,
@@ -58,7 +61,7 @@ UserSchema.methods.toJSON = function() {
   var user = this;
   var userObject = user.toObject();
 
-  return _.pick(userObject, ["_id", "local.email", "google", "facebook"]);
+  return _.pick(userObject, ["_id", "local.email", "google", "facebook", "picture", "createdAt"]);
 };
 
 /**
