@@ -3,6 +3,6 @@ import authReducer from "../reducers/auth";
 import thunk from 'redux-thunk';
 
 export default () => {
-  const store = createStore(combineReducers({auth: authReducer}), {}, applyMiddleware(thunk));
+  const store = createStore(combineReducers({user: authReducer}), {}, applyMiddleware(thunk));
   return store;
 };

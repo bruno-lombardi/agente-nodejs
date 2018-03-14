@@ -3,47 +3,33 @@ import { connect } from "react-redux";
 import { fetchUser } from "../actions/auth";
 import {
   Card,
-  Icon,
   Image,
-  Segment,
-  Dimmer,
-  Loader,
   Grid
 } from "semantic-ui-react";
-
-const Loading = () => (
-  <Segment style={{ height: "10em" }}>
-    <Dimmer active>
-      <Loader size="large" inline content="Carregando" />
-    </Dimmer>
-  </Segment>
-);
 
 class ProfilePage extends React.Component {
   state = {};
 
   renderCard() {
-   switch(this.props.auth) {
-    case null:
-     return (
-      <Loading />
-     )
-    case false:
-     this.props.history.push("/login")
-     break;
-    default:
-     return this.card()
-   }
+    switch (this.props.user) {
+      case null:
+        return;
+      case false:
+        this.props.history.push("/login");
+        break;
+      default:
+        return this.userProfile();
+    }
   }
 
-  card() {
+  userProfile() {
     return (
       <Card fluid>
-        <Image  src={this.props.auth.picture} />
+        <Image src={this.props.user.picture} />
         <Card.Content>
-          <Card.Header>{this.props.auth.google.name}</Card.Header>
+          <Card.Header>{this.props.user.google.name}</Card.Header>
           <Card.Description>
-            Parabéns {this.props.auth.google.name}. Você entrou com sucesso no
+            Parabéns {this.props.user.google.name}. Você entrou com sucesso no
             Agente.
           </Card.Description>
         </Card.Content>
@@ -53,19 +39,20 @@ class ProfilePage extends React.Component {
 
   render() {
     return (
-      <Grid padded>
+      <Grid style={{marginTop: "5em"}}>
         <Grid.Row centered>
-          <Grid.Column width={4}>
-            {this.renderCard()}
+          <Grid.Column computer="4" mobile="16" tablet="8" widescreen="4">
+            
           </Grid.Column>
         </Grid.Row>
       </Grid>
     );
   }
 }
-function mapStateToProps({ auth }) {
+
+function mapStateToProps({ user }) {
   return {
-    auth
+    user
   };
 }
 

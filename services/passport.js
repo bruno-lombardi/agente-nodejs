@@ -1,6 +1,7 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const debug = require("debug")("agente-esp:passport");
 const lodash = require("lodash");
 
@@ -31,18 +32,43 @@ passport.use(
         return done(null, existingUser);
       }
       const user = await new User({
+        firstName: profile.name.givenName,
+        lastName: profile.name.familyName,
         picture: profile.photos ? normalizeProfileImage(profile.photos[0].value) : "/assets/img/unknown_user.png",
         google: {
           id: profile.id,
           email: profile.emails[0].value,
           token: accessToken,
-          name: profile.name.givenName + ' ' + profile.name.familyName
         }
        }).save();
       done(null, user);
     }
   )
 );
+
+passport.use(new FacebookStrategy({
+  clientID: keys.facebookClientID,
+  clientSecret: keys.facebookClientSecret,
+  callbackURL: "/auth/facebook/callback",
+  profileFields: ['id', 'displayName', 'first_name', 'last_name', 'photos', 'email']
+}, async (accessToken, refreshToken, profile, done) => {
+  const existingUser = await User.findOne({ 'facebook.id': profile.id });
+  if (existingUser) {
+    return done(null, existingUser);
+  }
+  const user = await new User({
+    firstName: profile.name.givenName,
+    lastName: profile.name.familyName,
+    picture: profile.photos ? profile.photos[0].value : "/assets/img/unknown_user.png",
+    facebook: {
+      id: profile.id,
+      email: profile.emails[0].value,
+      token: accessToken,
+    }
+   }).save();
+  done(null, user);
+}
+));
 
 passport.use(
   new LocalStrategy(

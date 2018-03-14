@@ -1,14 +1,14 @@
 import React from "react";
 import {
   Button,
-  Form,
   Grid,
   Header,
   Image,
   Message,
   Segment,
   Icon,
-  Divider
+  Divider,
+  Transition
 } from "semantic-ui-react";
 import { Link } from "react-router-dom";
 import LoginForm from "./LoginForm";
@@ -63,13 +63,19 @@ class LoginPage extends React.Component {
             ) : (
               <Segment padded>
                 <a href="/auth/google">
-                  <Button color="google plus" fluid style={{ marginBottom: "1em" }}>
+                  <Button
+                    color="google plus"
+                    fluid
+                    style={{ marginBottom: "1em" }}
+                  >
                     <Icon name="google" /> Entrar com Google
                   </Button>
                 </a>
-                <Button fluid color="facebook">
-                  <Icon name="facebook" /> Entrar com Facebook
-                </Button>
+                <a href="/auth/facebook">
+                  <Button fluid color="facebook">
+                    <Icon name="facebook" /> Entrar com Facebook
+                  </Button>
+                </a>
                 <Divider horizontal>Ou</Divider>
                 <Button onClick={this.handleShowEmailForm} secondary fluid>
                   Entrar com email

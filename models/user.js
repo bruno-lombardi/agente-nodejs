@@ -39,13 +39,11 @@ var UserSchema = new mongoose.Schema({
     id: String,
     token: String,
     email: String,
-    name: String
   },
   facebook: {
     id: String,
     token: String,
     email: String,
-    name: String
   },
 }, {
   timestamps: true
@@ -61,7 +59,7 @@ UserSchema.methods.toJSON = function() {
   var user = this;
   var userObject = user.toObject();
 
-  return _.pick(userObject, ["_id", "local.email", "google", "facebook", "picture", "createdAt"]);
+  return _.pick(userObject, ["_id", "firstName", "lastName", "local.email", "google", "facebook", "picture", "createdAt"]);
 };
 
 /**
